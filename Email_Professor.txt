@@ -1,0 +1,12 @@
+Assunto: Entrega do trabalho de Introdução à Ciência de Dados
+
+Bom dia, professor Jodavid!
+
+Encaminho o relatório e o notebook do trabalho sobre perda de peso em pacientes oncológicos, utilizando a base brasileira que o senhor aprovou e comparando regressão Lasso e floresta aleatória para regressão.
+
+Peço desculpas pelo atraso. Tive compromissos de trabalho com encomendas no feriado e, neste período, também precisei organizar atendimento veterinário urgente para meu gato, que está com uma complicação urinária e em uso de sonda.
+
+Reconheço o prazo estabelecido e agradeço se puder considerar o recebimento do trabalho após essa data.
+
+Atenciosamente,
+Débora de Cássia de Morais

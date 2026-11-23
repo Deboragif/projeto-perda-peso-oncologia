@@ -1,0 +1,4 @@
+Modelo,MAE,RMSE,R2
+Referência (mediana),5.375,10.2,-0.069
+Floresta aleatória,5.429,9.356,0.1
+Lasso,5.619,9.81,0.011

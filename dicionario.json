@@ -1,0 +1,182 @@
+{
+  "descricoes": {
+    "ID": null,
+    "Sex": "Sex",
+    "Age": "Age",
+    "stage_life": "Stage Life",
+    "length_stay": "Length of stay",
+    "clas_length_stay": "Clasification Length of stay",
+    "death": "Death",
+    "ethnicity": "Ethnicity",
+    "tumor_location": "Tumor location",
+    "height": "Height (m)",
+    "actual_weight": "Actual weight (kg)",
+    "BMI": "Body Mass Index (kg/m2)",
+    "status_Nutritional": "Status Nutritional",
+    "HSG_Dmax": "Bigger HSG D",
+    "Clas_HSGD": "HSG D",
+    "HSG_NDmax": "Bigger HSG ND",
+    "clas_HSGND": "HSG ND",
+    "APMTD_mean": "APMT mean dominante (D)",
+    "clas_AMPTD": "APMT D",
+    "AMPTND_mean": "APMT mean Não dominante (ND)",
+    "clas_APMTND": "APMT ND",
+    "score_SGA": "Score global subjective evaluation",
+    "clas_SGA": "Classification SGA",
+    "GSA_2": null,
+    "Clas_score": null,
+    "nutritional_intervention": "Nutritional intervention",
+    "symptoms": "symptoms",
+    "number_symptoms": "number of symptoms",
+    "no_foods_problems": "No food problems",
+    "absence_appetite": "Absence of appetite",
+    "nausea": "Nausea",
+    "constipation": "Constipation",
+    "mouth_sores": "Mouth sores",
+    "strange_taste": "Strange taste",
+    "smell_sick": "Smell sick",
+    "full_quickly": "Full quickly",
+    "vomit": "Vomit",
+    "diarrhea": "Diarrhea",
+    "dry_mouth": "Dry mouth",
+    "problems_swallowing": "Problems swallowing",
+    "pain": "Pain",
+    "others": "Others",
+    "weight_loss": "Weight loss",
+    "clas_weight_loss": "Clasification weight loss"
+  },
+  "codigos": {
+    "Sex": {
+      "1.0": "female",
+      "2.0": "male"
+    },
+    "stage_life": {
+      "1.0": "elderly",
+      "2.0": "adult"
+    },
+    "clas_length_stay": {
+      "1.0": "<=7 days",
+      "2.0": ">7 days"
+    },
+    "death": {
+      "1.0": "yes",
+      "2.0": "No"
+    },
+    "ethnicity": {
+      "1.0": "white",
+      "2.0": "non white"
+    },
+    "tumor_location": {
+      "1.0": "upper GI tract",
+      "2.0": "lower GI tract",
+      "3.0": "attached glands",
+      "6.0": "others"
+    },
+    "status_Nutritional": {
+      "1.0": "eutrophic",
+      "2.0": "low weight",
+      "3.0": "excess weight"
+    },
+    "Clas_HSGD": {
+      "1.0": "reduced",
+      "2.0": "adequate"
+    },
+    "clas_HSGND": {
+      "1.0": "reduced",
+      "2.0": "adequate"
+    },
+    "clas_AMPTD": {
+      "1.0": "normal",
+      "2.0": "malnutrition"
+    },
+    "clas_APMTND": {
+      "1.0": "normal",
+      "2.0": "malnutrition"
+    },
+    "clas_SGA": {
+      "1.0": "well nourished",
+      "2.0": "moderate malnutrition",
+      "3.0": "severe malnutrition"
+    },
+    "GSA_2": {
+      "1.0": "well nourished",
+      "2.0": "malnutrition"
+    },
+    "Clas_score": {
+      "1.0": "0-1",
+      "2.0": "2-3",
+      "3.0": "4-8",
+      "4.0": ">9"
+    },
+    "nutritional_intervention": {
+      "1.0": "no need",
+      "2.0": "with need"
+    },
+    "number_symptoms": {
+      "1.0": ">=3",
+      "2.0": "<3",
+      "3.0": "without symptoms"
+    },
+    "no_foods_problems": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "absence_appetite": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "nausea": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "constipation": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "mouth_sores": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "strange_taste": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "smell_sick": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "full_quickly": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "vomit": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "diarrhea": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "dry_mouth": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "problems_swallowing": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "pain": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "others": {
+      "1.0": "yes",
+      "2.0": "no"
+    },
+    "clas_weight_loss": {
+      "1.0": "without loss",
+      "2.0": ">0-9,9%",
+      "3.0": ">=10,0%"
+    }
+  }
+}

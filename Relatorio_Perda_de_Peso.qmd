@@ -1,0 +1,178 @@
+---
+title: "Perda de peso em pacientes oncológicos do Hospital Universitário Cassiano Antônio Moraes"
+subtitle: "Análise exploratória e comparação entre Lasso e floresta aleatória"
+author: "Débora de Cássia de Morais"
+lang: pt-BR
+engine: knitr
+format:
+  typst:
+    include-in-header:
+      text: |
+        #set text(hyphenate: false)
+    fontsize: 11pt
+    papersize: a4
+    margin:
+      x: 2.1cm
+      y: 2.1cm
+    mainfont: "DejaVu Serif"
+    toc: false
+    keep-typ: true
+execute:
+  echo: false
+  warning: false
+  message: false
+
+---
+
+```{r}
+#| include: false
+base <- read.csv("base_oncologia.csv")
+treino <- read.csv("treino.csv")
+resultados <- read.csv("resultados_teste.csv", check.names = FALSE)
+cv <- read.csv("resultados_cv.csv", check.names = FALSE)
+options(OutDec = ",")
+```
+
+# 1. Introdução
+
+A perda de peso é uma medida relevante na avaliação nutricional de pessoas com câncer. Sua ocorrência pode acompanhar sintomas que dificultam a alimentação, mas conhecer essas relações não equivale a conseguir estimar com precisão a perda individual. Esse contraste motiva a aplicação de métodos de ciência de dados a um banco clínico real.
+
+Este trabalho utiliza dados públicos do estudo de Viana et al. (2020), que avaliou 135 pacientes adultos com câncer no Hospital Universitário Cassiano Antônio Moraes (HUCAM), vinculado à Universidade Federal do Espírito Santo (UFES), em Vitória, Espírito Santo. A coleta ocorreu entre março de 2017 e outubro de 2019, na avaliação inicial da internação para cirurgia. Os autores disponibilizaram o banco individual como material suplementar do artigo. A presente análise é secundária e tem finalidade acadêmica.
+
+**Pergunta de pesquisa:** em que medida idade, sexo, localização do tumor e sintomas de impacto nutricional permitem estimar o percentual de perda de peso registrado nos seis meses anteriores?
+
+**Objetivo geral:** explorar os dados e comparar a regressão Lasso e a floresta aleatória para regressão na estimação dessa perda de peso, tomando uma previsão constante pela mediana como referência.
+
+Os objetivos específicos são verificar a qualidade dos registros, descrever a distribuição da resposta, explorar relações com características dos pacientes e avaliar os erros em um conjunto de teste reservado.
+
+O desfecho é quantitativo: `weight_loss`, em percentual. O estudo não pretende diagnosticar desnutrição a partir desse valor isolado. Como os preditores e a história de perda de peso pertencem à mesma avaliação clínica, a tarefa é retrospectiva. Não se trata de prever uma perda futura nem de identificar efeitos causais.
+
+O banco contém `r nrow(base)` registros e `r ncol(base)` variáveis originais. A seleção utilizada na modelagem contém 15 variáveis explicativas, transformadas em 17 colunas após a codificação das categorias. Todos os 135 pacientes possuem resposta e preditores selecionados preenchidos.
+
+{{< pagebreak >}}
+
+# 2. Fundamentos teóricos e metodológicos
+
+## 2.1. Métodos de regressão
+
+O Lasso combina uma regressão linear com uma penalização sobre a soma dos valores absolutos dos coeficientes (Tibshirani, 1996). Na implementação utilizada, o ajuste minimiza:
+
+$$
+\frac{1}{2n}\sum_{i=1}^{n}(y_i-\beta_0-\mathbf{x}_i^T\boldsymbol{\beta})^2
++\alpha\sum_{j=1}^{p}|\beta_j|.
+$$
+
+A penalização reduz a magnitude dos coeficientes e pode levar alguns deles a zero. O parâmetro $\alpha$ controla sua intensidade. A padronização dos preditores evita que diferenças de escala determinem o peso da penalização.
+
+A floresta aleatória reúne árvores ajustadas a amostras com reposição e utiliza subconjuntos aleatórios de preditores nos nós. Em regressão, combina as previsões das árvores por média (Breiman, 2001). Pode representar relações não lineares e interações, embora isso não garanta melhor desempenho em uma amostra específica.
+
+## 2.2. Preparação e validação
+
+Os preditores foram idade, sexo, localização do tumor e 12 sintomas: falta de apetite, náusea, constipação, feridas na boca, alteração do paladar, incômodo com odores, saciedade precoce, vômito, diarreia, boca seca, dificuldade para engolir e dor.
+
+A seleção excluiu identificadores, desfechos da internação e escores que incorporam a própria perda de peso. Peso atual e IMC também não entraram no conjunto proposto. A seleção foi conceitual, sem busca de preditores baseada no desempenho do teste. Não houve imputação ou exclusão de pacientes.
+
+A divisão aleatória, com semente 42, reservou 108 pacientes (80%) para treino e 27 (20%) para teste. As categorias foram codificadas por indicadores, omitindo uma categoria de referência. Nos sintomas, a referência é presença: indicadores de ausência recebem 1. Os códigos originais de sexo e localização não foram tratados como quantidades contínuas.
+
+O ajuste usou validação cruzada de cinco partes no treino. A codificação e, no Lasso, a padronização de todas as colunas ocorreram dentro de cada parte por meio de *pipelines*. O Lasso avaliou 30 valores de $\alpha$ entre $10^{-3}$ e $10^{1,5}$. A floresta utilizou 300 árvores, profundidades 2, 4 ou sem limite, mínimo de 3 ou 8 pacientes por folha e frações de 0,7 ou 1,0 dos preditores por divisão. A escolha minimizou o MAE de validação.
+
+## 2.3. Métricas
+
+O MAE mede o erro absoluto médio. O RMSE atribui maior peso a erros grandes. Ambos estão em pontos percentuais (p.p.). O $R^2$ compara a soma dos erros quadráticos com a dispersão em torno da média do conjunto avaliado e pode ser negativo. A referência prevê a mediana aprendida somente no treino. As métricas finais usam os 27 pacientes de teste, sem novo ajuste.
+
+{{< pagebreak >}}
+
+# 3. Aplicação: análise exploratória
+
+A inspeção não identificou linhas duplicadas, IDs repetidos ou perdas negativas. Os campos selecionados não apresentaram ausências. Outras variáveis do banco têm valores faltantes, mas não participam da modelagem. Os valores extremos foram mantidos: magnitude elevada, isoladamente, não comprova erro de registro.
+
+**Tabela 1. Distribuição da perda percentual de peso.**
+
+```{r}
+resumo <- function(x) c(length(x), mean(x), sd(x), min(x),
+                        unname(quantile(x,.25)), median(x),
+                        unname(quantile(x,.75)), max(x))
+tab <- data.frame(Medida=c("Pacientes (n)","Média (%)","Desvio-padrão (%)",
+                          "Mínimo (%)","1º quartil (%)","Mediana (%)",
+                          "3º quartil (%)","Máximo (%)"),
+                  Total=resumo(base$weight_loss), Treino=resumo(treino$weight_loss))
+knitr::kable(transform(tab[c(1,2,3,6,8),], Total=round(Total+1e-9,2), Treino=round(Treino+1e-9,2)), row.names=FALSE, digits=2, booktabs=TRUE, align=c("l","r","r"))
+```
+
+Fonte: elaboração própria com os dados suplementares de Viana et al. (2020).
+
+Na amostra completa, 51 pacientes (37,8%) apresentaram perda registrada igual a zero. A média de 4,54% superou a mediana de 2,40%, compatível com assimetria à direita. O treino também concentrou valores baixos, com mediana de 2,68% e máximo de 23,59%.
+
+![Distribuição e dispersão da perda de peso no treino. Fonte: elaboração própria.](figuras/celula_3_0.png){width=80%}
+
+![Relações exploratórias no treino. GI: gastrointestinal. Fonte: elaboração própria.](figuras/relacoes_treino.png){width=75%}
+
+As medianas por localização no treino foram 4,07% (GI superior, n=17), 2,93% (GI inferior, n=38), 2,14% (glândulas anexas, n=32) e 1,60% (outros, n=21). São comparações descritivas, sem teste de significância ou interpretação causal.
+
+{{< pagebreak >}}
+
+# 4. Aplicação: resultados dos modelos
+
+Na validação interna, a floresta apresentou MAE de 3,838 p.p., a referência de 3,849 p.p. e o Lasso de 3,979 p.p. A diferença entre floresta e referência foi de apenas 0,011 p.p. Esses valores participaram da seleção de ajustes e não são estimativas independentes de desempenho após essa seleção.
+
+O Lasso selecionou $\alpha=0,43444$. A floresta selecionou profundidade sem limite explícito, fração de preditores de 0,7 e mínimo de três pacientes por folha, mantendo as 300 árvores. Depois dessa escolha, ambos foram ajustados aos 108 pacientes de treino e avaliados no teste.
+
+**Tabela 2. Desempenho no conjunto de teste (n=27).**
+
+```{r}
+colnames(resultados) <- c("Modelo", "MAE (p.p.)", "RMSE (p.p.)", "R²")
+knitr::kable(resultados, digits=3, booktabs=TRUE, align=c("l","r","r","r"))
+```
+
+Fonte: saídas do notebook Python executado no Google Colab. Valores arredondados a três casas decimais.
+
+A referência obteve o menor MAE. A floresta teve o menor RMSE e maior $R^2$, mas o ganho depende da métrica: não houve superioridade geral. Em comparação com a referência, seu RMSE foi 0,844 p.p. menor e seu MAE foi 0,054 p.p. maior. O Lasso apresentou $R^2$ próximo de zero.
+
+![Perda observada e estimada no teste. A diagonal representa igualdade entre observação e estimativa. Fonte: elaboração própria.](figuras/celula_7_0.png){width=100%}
+
+Os dois modelos subestimaram os maiores valores. Para a perda observada de 45,94%, o Lasso estimou 4,68% e a floresta 5,42%, com erros absolutos de 41,26 e 40,52 p.p. Para o segundo maior valor (22,46%), estimaram 5,11% e 8,03%, respectivamente. As previsões se concentraram em uma faixa muito mais estreita que a resposta observada.
+
+{{< pagebreak >}}
+
+# 5. Discussão dos resultados e limitações
+
+Os resultados mostram que o uso de aprendizado de máquina não assegura ganho em relação a uma referência simples. A mediana do treino (2,675%, apresentada como 2,68%) produziu o menor MAE no teste. A floresta reduziu o RMSE, mas essa vantagem não se repetiu no MAE. Escolher apenas a métrica mais favorável após observar os resultados produziria uma interpretação incompleta. O MAE foi o critério previamente empregado para selecionar os ajustes.
+
+A distribuição assimétrica e a concentração de respostas iguais a zero ajudam a contextualizar o desempenho da mediana. Já o RMSE é sensível às maiores discrepâncias. O paciente com perda de 45,94% pertence ao teste, enquanto o maior valor do treino é 23,59%. Esse contraste é relevante para compreender a dificuldade de representar perdas elevadas com os dados disponíveis. Entretanto, não foi feita uma decomposição formal da influência de cada observação. Não se atribui a esse paciente, isoladamente, todo o desempenho observado.
+
+As estimativas muito inferiores às perdas mais altas apontam uma limitação prática: esses modelos não demonstraram capacidade suficiente para identificar a magnitude dos casos mais extremos. A importância dessa limitação não se resume ao valor médio das métricas. Para uma aplicação clínica, seria necessário avaliar erros por perfis de pacientes, coletar dados adicionais e validar o procedimento em outras amostras.
+
+O estudo apresenta limitações relevantes:
+
+- **Amostra pequena:** o teste inclui somente 27 pacientes. Uma divisão diferente poderia alterar as métricas e sua ordenação. Não foram calculados intervalos de confiança ou demonstradas diferenças estatisticamente significativas entre métodos.
+- **Seleção de ajustes:** a mesma validação interna orientou a escolha dos hiperparâmetros. Seus melhores escores podem ser otimistas. O teste reservado fornece uma avaliação separada, mas não equivale a validação externa.
+- **População delimitada:** os registros pertencem a pacientes cirúrgicos de um único hospital. Não representam todos os pacientes com câncer no Brasil.
+- **Informações disponíveis:** estágio tumoral e metástase não integram esta análise. O artigo de origem também destaca a ausência dessas informações como limitação (Viana et al., 2020).
+- **Temporalidade:** o delineamento transversal e o registro retrospectivo da perda não permitem afirmar que os sintomas causaram o emagrecimento ou que o modelo prevê evolução futura.
+- **Valores extremos:** o registro de 45,94% foi mantido como publicado. Não houve acesso ao prontuário ou ao peso habitual para validá-lo clinicamente.
+
+Não se alteraram a semente, os preditores, os hiperparâmetros ou os pacientes após observar o teste. Os achados negativos ou modestos foram preservados. Um próximo estudo pode avaliar um protocolo previamente definido com maior amostra, medidas longitudinais e validação externa.
+
+{{< pagebreak >}}
+
+# 6. Conclusão
+
+A análise de 135 pacientes mostrou perda de peso heterogênea, com muitos registros iguais a zero e uma cauda de perdas elevadas. A exploração descreveu padrões, mas não estabeleceu causalidade.
+
+Na comparação final, a referência pela mediana apresentou o menor MAE (5,375 p.p.). A floresta teve menor RMSE (9,356 p.p.) e $R^2$ de 0,100. O Lasso apresentou MAE de 5,619 p.p. e $R^2$ de 0,011. Os dois modelos subestimaram as maiores perdas. Assim, não se demonstrou vantagem consistente dos modelos ajustados sobre a referência, nem desempenho que sustente uso clínico individual.
+
+O trabalho cumpriu o ciclo de preparação, exploração, ajuste e avaliação de dois métodos de regressão, destacando que uma conclusão metodologicamente válida pode ser a limitação preditiva das variáveis e do procedimento estudados.
+
+# 7. Contribuições da equipe
+
+**Débora de Cássia de Morais: 100% da participação discente.** Trabalho individual, com definição da temática, execução das etapas no Colab e discussão dos resultados.
+
+# Referências
+
+VIANA, E. C. R. de M. et al. Malnutrition and nutrition impact symptoms (NIS) in surgical patients with cancer. *PLOS ONE*, v. 15, n. 12, e0241305, 2020. DOI: [10.1371/journal.pone.0241305](https://doi.org/10.1371/journal.pone.0241305). Banco: material suplementar S1 Data, arquivo SAV. Acesso em: 23 nov. 2026.
+
+TIBSHIRANI, R. Regression shrinkage and selection via the lasso. *Journal of the Royal Statistical Society: Series B*, v. 58, n. 1, p. 267-288, 1996. DOI: [10.1111/j.2517-6161.1996.tb02080.x](https://doi.org/10.1111/j.2517-6161.1996.tb02080.x).
+
+BREIMAN, L. Random forests. *Machine Learning*, v. 45, p. 5-32, 2001. DOI: [10.1023/A:1010933404324](https://doi.org/10.1023/A:1010933404324).
+
+SCIKIT-LEARN. *Documentação: Pipeline e GridSearchCV*. Disponível em: [scikit-learn.org/stable](https://scikit-learn.org/stable/). Acesso em: 23 nov. 2026.
